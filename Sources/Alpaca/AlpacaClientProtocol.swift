@@ -110,6 +110,17 @@ extension AlpacaClientProtocol {
 
         let (data, _) = try await URLSession.shared.data(for: request)
 
-        return try Utils.jsonDecoder.decode(T.self, from: data)
+        do {
+            let response = try Utils.jsonDecoder.decode(T.self, from: data)
+            return response
+        } catch _ {
+            let response = try Utils.jsonDecoder.decode(ErrorResponse.self, from: data)
+            throw AlpacaError.requestError(response.message)
+        }
     }
+}
+
+struct ErrorResponse: Codable {
+    let code: Int
+    let message: String
 }
